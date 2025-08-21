@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/cron/transactions",
+      "dest": "api/cron/transactions.ts"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.ts"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/transactions",
+      "schedule": "0 5 * * *"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    container_name: expense-tracker-mongodb
+    restart: unless-stopped
+    ports:
+      - "${MONGODB_PORT}:27017"
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE}
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - expense-tracker-network
+
+  # Backend Server
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: expense-tracker-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${BACKEND_PORT}
+      BASE_PATH: ${BASE_PATH}
+      MONGO_URI: ${MONGO_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
+    depends_on:
+      - mongodb
+    networks:
+      - expense-tracker-network
+
+  # Frontend Client
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    container_name: expense-tracker-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    depends_on:
+      - backend
+    networks:
+      - expense-tracker-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  expense-tracker-network:
+    driver: bridge
